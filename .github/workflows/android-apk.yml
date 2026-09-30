@@ -45,11 +45,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          -name: Install PyYAML
-          run: pip install pyyaml
 
       - name: Scripts + project structure
-        run: ./Tools/verify.sh
+        run: |
+          pip install pyyaml
+          ./Tools/verify.sh
 
   # ---------------------------------------------------------------------
   # Gate 2 - the real IL2CPP Android build.
