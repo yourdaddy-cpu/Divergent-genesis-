@@ -1,0 +1,127 @@
+name: Divergent Genesis - Android
+
+# Build an installable APK on every push so you can download it straight
+# from the GitHub Actions tab -> Artifacts -> divergent-genesis-apk.
+#
+# The Unity version is NOT chosen here. game-ci/unity-builder always reads it
+# from ProjectSettings/ProjectVersion.txt, so that file is the single source of
+# truth (currently 6000.0.23f1).
+on:
+  push:
+    branches: [main, master, development]
+  pull_request:
+    branches: [main, master, development]
+  workflow_dispatch:
+    inputs:
+      export_type:
+        description: 'androidPackage = installable APK, androidAppBundle = Play Store AAB'
+        default: 'androidPackage'
+        type: choice
+        options:
+          - androidPackage
+          - androidAppBundle
+
+concurrency:
+  group: dg-android-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ---------------------------------------------------------------------
+  # Gate 1 - type-check every script and validate the Unity YAML without
+  # Unity. Runs in ~15s and needs no licence, so obvious breakage is caught
+  # long before the expensive build.
+  # ---------------------------------------------------------------------
+  typecheck:
+    name: Type-check scripts
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Scripts + project structure
+        run: ./Tools/verify.sh
+
+  # ---------------------------------------------------------------------
+  # Gate 2 - the real IL2CPP Android build.
+  # ---------------------------------------------------------------------
+  build-android:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    needs: typecheck
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      # Unity + the Android SDK + NDK + IL2CPP intermediate output do not fit
+      # in the ~14 GB a stock GitHub runner reports. This is the single most
+      # common reason an otherwise-correct GameCI Android build dies halfway
+      # through with "no space left on device".
+      - name: Free disk space
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: false
+          large-packages: false
+
+      # Cuts repeat build time roughly in half.
+      - name: Cache Unity Library folder
+        uses: actions/cache@v4
+        with:
+          path: Library
+          key: Library-Android-DG-${{ hashFiles('ProjectSettings/ProjectVersion.txt', 'Packages/manifest.json') }}
+          restore-keys: |
+            Library-Android-DG-
+
+      - name: Build with GameCI
+        uses: game-ci/unity-builder@v4
+        env:
+          # --- Personal (free) licence: UNITY_LICENSE is REQUIRED.
+          #     Get the .ulf once from https://license.unity3d.com/manual
+          #     and store its contents in the UNITY_LICENSE secret.
+          # --- Professional licence: also set UNITY_SERIAL.
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+        with:
+          targetPlatform: Android
+          buildMethod: DivergentGenesis.Editor.DGBuildScript.BuildAndroid
+          androidExportType: ${{ github.event.inputs.export_type || 'androidPackage' }}
+          androidVersionCode: 1
+          androidTargetSdkVersion: '35'
+          buildName: divergent-genesis
+          androidSymbolType: public
+          chownFilesTo: ':'
+          # DGBuildScript decides the exit code itself and calls
+          # EditorApplication.Exit(0|1). Leaving -quit in place as well would
+          # race the explicit exit and can mask a failure as success.
+          manualExit: true
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: divergent-genesis-apk
+          path: build/divergent-genesis/**
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Summary
+        run: |
+          {
+            echo "### Divergent Genesis APK built"
+            echo ""
+            echo "Download: **Actions -> this run -> Artifacts -> divergent-genesis-apk**"
+            echo ""
+            echo '```'
+            ls -la build/divergent-genesis 2>/dev/null || echo "build/divergent-genesis not found"
+            echo '```'
+          } >> $GITHUB_STEP_SUMMARY

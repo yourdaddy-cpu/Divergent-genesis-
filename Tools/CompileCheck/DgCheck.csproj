@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Headless compile harness for Divergent Genesis.
+
+    Unity is not required to run this. UnityStub.cs provides just enough of the
+    UnityEngine / UnityEditor API surface to type-check every gameplay script,
+    so the whole project can be validated with `dotnet build` in a few seconds -
+    including in CI, before the (slow, Unity-licensed) Android build is attempted.
+
+    Every stub signature here is written to match real Unity 6 exactly; if the
+    stub and Unity ever disagree, the stub is the bug.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <OutputType>Library</OutputType>
+    <AssemblyName>DgCheck</AssemblyName>
+    <RootNamespace>DGCheck</RootNamespace>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <LangVersion>9.0</LangVersion>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <NoStdLib>false</NoStdLib>
+    <DefineConstants>$(DefineConstants);UNITY_EDITOR;UNITY_ANDROID;UNITY_2021_1_OR_NEWER;UNITY_6000_0_OR_NEWER</DefineConstants>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <NoWarn>CS0414;CS0649;CS0169;CS0108;CS0114;CS0660;CS0661;CS1573;CS1717;CS0219;CS1998</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="UnityStub.cs" />
+    <Compile Include="../../Assets/**/*.cs" />
+  </ItemGroup>
+
+</Project>
