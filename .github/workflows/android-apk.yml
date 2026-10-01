@@ -3,27 +3,20 @@ name: Divergent Genesis - Android
 on:
   push:
     branches: [main, master, development]
-  pull_request:
-    branches: [main, master, development]
   workflow_dispatch:
     inputs:
       export_type:
-        description: 'androidPackage = installable APK, androidAppBundle = Play Store AAB'
+        description: 'androidPackage = APK, androidAppBundle = AAB'
         default: 'androidPackage'
         type: choice
         options:
           - androidPackage
           - androidAppBundle
 
-concurrency:
-  group: dg-android-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   typecheck:
     name: Type-check scripts
     runs-on: ubuntu-latest
-    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
@@ -42,7 +35,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 120
     needs: typecheck
-
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
@@ -52,14 +44,6 @@ jobs:
         with:
           tool-cache: false
           large-packages: false
-
-      - name: Cache Unity Library folder
-        uses: actions/cache@v4
-        with:
-          path: Library
-          key: Library-Android-DG-${{ hashFiles('ProjectSettings/ProjectVersion.txt', 'Packages/manifest.json') }}
-          restore-keys: |
-            Library-Android-DG-
 
       - name: Build with GameCI
         uses: game-ci/unity-builder@v4
@@ -75,7 +59,6 @@ jobs:
           androidTargetSdkVersion: '35'
           buildName: divergent-genesis
           androidSymbolType: public
-          chownFilesTo: ':'
           manualExit: true
 
       - name: Upload APK artifact
