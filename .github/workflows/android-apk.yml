@@ -13,6 +13,10 @@ on:
           - androidPackage
           - androidAppBundle
 
+concurrency:
+  group: dg-android-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   typecheck:
     name: Type-check scripts
@@ -45,12 +49,28 @@ jobs:
           tool-cache: false
           large-packages: false
 
+      - name: Cache Unity Library folder
+        uses: actions/cache@v4
+        with:
+          path: Library
+          key: Library-Android-DG-${{ hashFiles('ProjectSettings/ProjectVersion.txt', 'Packages/manifest.json') }}
+          restore-keys: |
+            Library-Android-DG-
+
+      - name: Activate Unity License
+        uses: game-ci/unity-activate@v2
+        env:
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_TOTP_KEY: ${{ secrets.UNITY_TOTP_KEY }}
+
       - name: Build with GameCI
         uses: game-ci/unity-builder@v4
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_TOTP_KEY: ${{ secrets.UNITY_TOTP_KEY }}
         with:
           targetPlatform: Android
           buildMethod: DivergentGenesis.Editor.DGBuildScript.BuildAndroid
