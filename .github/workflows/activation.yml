@@ -20,8 +20,19 @@ jobs:
       - name: Activate the license
         run: unity-license-activate "${{ secrets.UNITY_EMAIL }}" "${{ secrets.UNITY_PASSWORD }}"
 
+      - name: List files to find the .ulf
+        run: |
+          echo "Listing files in the current directory:"
+          ls -la
+          echo "Searching for .ulf files everywhere:"
+          find . -name "*.ulf"
+
       - name: Upload the generated .ulf file
         uses: actions/upload-artifact@v4
         with:
-          name: Unity_lic.ulf
-          path: Unity_lic.ulf
+          name: Unity_lic
+          path: |
+            Unity_lic.ulf
+            ./*.ulf
+            ./**/*.ulf
+          if-no-files-found: warn
