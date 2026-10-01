@@ -9,30 +9,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '16'
-
-      - name: Install unity-license-activate
-        run: npm install --global unity-license-activate
-
-      - name: Activate the license
-        run: unity-license-activate "${{ secrets.UNITY_EMAIL }}" "${{ secrets.UNITY_PASSWORD }}"
-
-      - name: List files to find the .ulf
-        run: |
-          echo "Listing files in the current directory:"
-          ls -la
-          echo "Searching for .ulf files everywhere:"
-          find . -name "*.ulf"
-
-      - name: Upload the generated .ulf file
-        uses: actions/upload-artifact@v4
-        with:
-          name: Unity_lic
-          path: |
-            Unity_lic.ulf
-            ./*.ulf
-            ./**/*.ulf
-          if-no-files-found: warn
+      - name: Activate Unity License
+        uses: game-ci/unity-activate@v2
+        env:
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }} # Optional, but recommended
