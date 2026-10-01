@@ -1,7 +1,5 @@
 name: Divergent Genesis - Android
 
-# Build an installable APK on every push so you can download it straight
-# from the GitHub Actions tab -> Artifacts -> divergent-genesis-apk.
 on:
   push:
     branches: [main, master, development]
@@ -22,34 +20,23 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # ---------------------------------------------------------------------
-  # Gate 1 - type-check every script and validate the Unity YAML without
-  # Unity. Runs in ~15s and needs no licence, so obvious breakage is caught
-  # long before the expensive build.
-  # ---------------------------------------------------------------------
   typecheck:
     name: Type-check scripts
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
-
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-
       - name: Scripts + project structure
         run: |
           pip install pyyaml
           ./Tools/verify.sh
 
-  # ---------------------------------------------------------------------
-  # Gate 2 - the real IL2CPP Android build.
-  # ---------------------------------------------------------------------
   build-android:
     name: Build Android APK
     runs-on: ubuntu-latest
@@ -66,7 +53,6 @@ jobs:
           tool-cache: false
           large-packages: false
 
-      # Cuts repeat build time roughly in half.
       - name: Cache Unity Library folder
         uses: actions/cache@v4
         with:
@@ -75,7 +61,6 @@ jobs:
           restore-keys: |
             Library-Android-DG-
 
-      # --- NEW: Generate the Unity License File right here on the server ---
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -85,18 +70,20 @@ jobs:
         run: npm install --global unity-license-activate
 
       - name: Generate Unity License File
-        # If you have 2FA enabled, change the line below to:
-        # run: unity-license-activate "${{ secrets.UNITY_EMAIL }}" "${{ secrets.UNITY_PASSWORD }}" --authenticator-key "${{ secrets.UNITY_TOTP_KEY }}"
-        run: unity-license-activate "${{ secrets.UNITY_EMAIL }}" "${{ secrets.UNITY_PASSWORD }}"
-      # ---------------------------------------------------------------------
+        id: license
+        run: |
+          unity-license-activate "${{ secrets.UNITY_EMAIL }}" "${{ secrets.UNITY_PASSWORD }}"
+          LICENSE_CONTENT=$(cat Unity_lic.ulf)
+          echo "UNITY_LICENSE_CONTENT<<EOF" >> $GITHUB_ENV
+          echo "$LICENSE_CONTENT" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
 
       - name: Build with GameCI
         uses: game-ci/unity-builder@v4
         env:
-          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_LICENSE: ${{ env.UNITY_LICENSE_CONTENT }}
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
         with:
           targetPlatform: Android
           buildMethod: DivergentGenesis.Editor.DGBuildScript.BuildAndroid
