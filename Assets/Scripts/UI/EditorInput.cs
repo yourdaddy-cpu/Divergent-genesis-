@@ -47,6 +47,24 @@ namespace DivergentGenesis.UI
             if (Input.GetKeyDown(KeyCode.Escape)) InputHub.EscapePressed = true;
             if (Input.GetKeyDown(KeyCode.F)) InputHub.ToggleViewPressed = true;
 
+            // --- milestone 2: building, the recipe book, the ritual -------------
+            if (Input.GetKeyDown(KeyCode.B)) InputHub.BuildPressed = true;
+            if (Input.GetKeyDown(KeyCode.R)) InputHub.BuildRotatePressed = true;
+            if (Input.GetKeyDown(KeyCode.Q)) InputHub.RecipeBookPressed = true;
+            if (Input.GetKeyDown(KeyCode.X)) InputHub.BuildCancelPressed = true;
+
+            // while a build ghost is up, the mouse builds instead of mining
+            var building = DivergentGenesis.Building.BuildingSystem.Instance;
+            if (building != null && building.IsPlacing)
+            {
+                InputHub.AttackHeld = false;
+                if (Input.GetMouseButtonDown(0) && !OverUI())
+                {
+                    InputHub.AttackPressed = false;
+                    InputHub.BuildPlacePressed = true;
+                }
+            }
+
             for (int i = 0; i < 9; i++)
                 if (Input.GetKeyDown(KeyCode.Alpha1 + i)) InputHub.HotbarPressed = i;
         }

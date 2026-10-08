@@ -22,7 +22,13 @@ namespace DivergentGenesis.World
         Rocky = 14,
         Mountain = 15,
         SnowPeak = 16,
-        Ashlands = 17
+        Ashlands = 17,
+
+        // --- the Node dimension ---------------------------------------------
+        NodeMeadow = 18,
+        NodeForest = 19,
+        NodeCream = 20,
+        NodeCrystal = 21
     }
 
     public struct BiomeInfo
@@ -46,7 +52,7 @@ namespace DivergentGenesis.World
     /// </summary>
     public static class BiomeSystem
     {
-        public const int Count = 18;
+        public const int Count = 22;
 
         private static readonly BiomeInfo[] Table = new BiomeInfo[Count];
 
@@ -92,10 +98,17 @@ namespace DivergentGenesis.World
             Set(16, "Snow Peak", 224, 232, 238, 200, 212, 224, 150, 152, 156, 140, 146, 154, Blocks.Snow, 0.4f, 0.02f, true);
             Set(17, "Ashlands", 86, 80, 78, 74, 70, 68, 62, 56, 52, 78, 74, 72, Blocks.Ash, 0.6f, 0.06f, false);
 
+            //         name             grass            foliage           dirt             stone            surface                 treeDens grassDens snowy
+            Set(18, "Node Meadow", 190, 240, 196, 178, 232, 188, 244, 214, 224, 232, 176, 148, Blocks.FrostingGrass, 2.2f, 0.35f, false);
+            Set(19, "Gumdrop Wood", 172, 232, 208, 164, 224, 200, 226, 196, 216, 220, 168, 186, Blocks.FrostingGrass, 11f, 0.20f, false);
+            Set(20, "Cream Shallows", 214, 226, 240, 206, 218, 234, 236, 232, 240, 244, 218, 226, Blocks.Sand, 0.3f, 0.0f, false);
+            Set(21, "Cotton Highlands", 238, 244, 255, 230, 238, 252, 244, 244, 250, 250, 250, 255, Blocks.Snow, 0.8f, 0.05f, false);
+
             // Ocean water is swimmable.
             Table[0].Swimmable = true;
             Table[1].Swimmable = true;
             Table[2].Swimmable = true;
+            Table[20].Swimmable = true;
         }
 
         public static BiomeInfo Get(BiomeType type)

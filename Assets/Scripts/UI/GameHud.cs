@@ -219,6 +219,20 @@ namespace DivergentGenesis.UI
             UIFactory.TopLeft((RectTransform)setBtn.transform, 30f, 292f, 92f, 92f);
             setBtn.onClick.AddListener(() => { if (hud.SettingsToggled != null) hud.SettingsToggled(); });
 
+            // milestone 2 buttons: the build catalogue, the recipe book and the
+            // placement rotation. Big enough for a thumb, out of the way of the stick.
+            var buildBtn = UIFactory.RoundButton(root, "BuildBtn", "Build", 22, new Color(0.22f, 0.34f, 0.26f, 0.75f), UIFactory.Text);
+            UIFactory.TopLeft((RectTransform)buildBtn.transform, 30f, 394f, 92f, 92f);
+            buildBtn.onClick.AddListener(() => { InputHub.BuildPressed = true; });
+
+            var bookBtn = UIFactory.RoundButton(root, "BookBtn", "Book", 22, new Color(0.24f, 0.26f, 0.38f, 0.75f), UIFactory.Text);
+            UIFactory.TopLeft((RectTransform)bookBtn.transform, 30f, 496f, 92f, 92f);
+            bookBtn.onClick.AddListener(() => { InputHub.RecipeBookPressed = true; });
+
+            var rotBtn = UIFactory.RoundButton(root, "RotateBtn", "Rot", 22, new Color(0.38f, 0.30f, 0.18f, 0.75f), UIFactory.Text);
+            UIFactory.Corner((RectTransform)rotBtn.transform, 548f, 300f, 96f, 96f);
+            rotBtn.onClick.AddListener(() => { InputHub.BuildRotatePressed = true; });
+
             // --- hotbar -------------------------------------------------------
             hud._hotbar = HotbarUI.Create(root, inventory);
 

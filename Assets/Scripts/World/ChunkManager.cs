@@ -39,12 +39,16 @@ namespace DivergentGenesis.World
         private int _frame;
         private int _voxelUpgradesThisFrame;
         private bool _settingsDirty;
+        private int _generation;
 
         public Transform ChunkRoot { get { return _chunkRoot; } }
         public int LoadedTileCount { get { return _chunks.Count; } }
         public int PendingTileCount { get { return _pool != null ? _pool.PendingCount : 0; } }
         public bool Busy { get { return _needsMesh.Count > 0 || PendingTileCount > 0; } }
         public int WorldSeedValue { get { return WorldSeed; } }
+
+        /// <summary>The pure generator behind this world. Safe to sample from any thread.</summary>
+        public TerrainGenerator Generator { get { return _gen; } }
 
         /// <summary>True once the ground under the player actually exists.</summary>
         public bool WorldReady
@@ -118,6 +122,32 @@ namespace DivergentGenesis.World
             _settingsDirty = true;
         }
 
+        /// <summary>
+        /// Throws away every streamed tile and starts again. This is what a
+        /// dimension change is: the same streaming code, a different world.
+        ///
+        /// The generation counter is what makes it safe - jobs still sitting on
+        /// the worker threads belong to the old epoch and are dropped on arrival,
+        /// so a tile from the overworld can never leak into the Node.
+        /// </summary>
+        public void RebuildAll()
+        {
+            _generation++;
+
+            var kill = new List<ChunkRuntime>(_chunks.Values);
+            for (int i = 0; i < kill.Count; i++)
+            {
+                if (kill[i] != null) kill[i].Release();
+            }
+            _chunks.Clear();
+            _needsMesh.Clear();
+            _inflight.Clear();
+
+            // a fresh pool discards queued work from the plane we just left
+            StartPool();
+            _settingsDirty = true;
+        }
+
         private void OnDestroy()
         {
             if (_pool != null) { _pool.Dispose(); _pool = null; }
@@ -169,6 +199,9 @@ namespace DivergentGenesis.World
             {
                 long key = ChunkRuntime.ChunkKey(r.Cx, r.Cz, r.Level);
                 _inflight.Remove(key);
+
+                // a tile built for the plane we already left is garbage
+                if (r.Gen != _generation) continue;
 
                 ChunkRuntime existing;
                 if (_chunks.TryGetValue(key, out existing) && existing.Data != null)
@@ -223,7 +256,7 @@ namespace DivergentGenesis.World
 
                             bool wantVoxels = level == 0 && d <= Quality.VoxelRadiusChunks * 32f;
                             _inflight.Add(key);
-                            _pool.Enqueue(new GenJob { Cx = cx, Cz = cz, Level = level, Seed = WorldSeed, Voxels = wantVoxels });
+                            _pool.Enqueue(new GenJob { Cx = cx, Cz = cz, Level = level, Seed = WorldSeed, Voxels = wantVoxels, Gen = _generation });
                             budget--;
                         }
                     }
@@ -294,7 +327,7 @@ namespace DivergentGenesis.World
                     Unload(t);
                     _chunks.Remove(key);
                     _inflight.Add(key);
-                    _pool.Enqueue(new GenJob { Cx = t.Cx, Cz = t.Cz, Level = 0, Seed = WorldSeed, Voxels = true });
+                    _pool.Enqueue(new GenJob { Cx = t.Cx, Cz = t.Cz, Level = 0, Seed = WorldSeed, Voxels = true, Gen = _generation });
                     _voxelUpgradesThisFrame++;
                 }
             }
@@ -319,7 +352,7 @@ namespace DivergentGenesis.World
                 Unload(t);
                 _chunks.Remove(key);
                 _inflight.Add(key);
-                _pool.Enqueue(new GenJob { Cx = cx, Cz = cz, Level = 0, Seed = WorldSeed, Voxels = true });
+                _pool.Enqueue(new GenJob { Cx = cx, Cz = cz, Level = 0, Seed = WorldSeed, Voxels = true, Gen = _generation });
             }
         }
 
@@ -393,7 +426,11 @@ namespace DivergentGenesis.World
             int hi = Mathf.FloorToInt(h);
             int yi = y;
 
-            if (yi > hi) return yi <= WorldConfig.SeaLevel ? World.Blocks.Water : World.Blocks.Air;
+            bool node = DimensionState.NodeActive;
+            int seaLevel = node ? Mathf.RoundToInt(NodeConfig.CreamSeaLevel)
+                                : Mathf.RoundToInt(WorldConfig.SeaLevel);
+
+            if (yi > hi) return yi <= seaLevel ? World.Blocks.Water : World.Blocks.Air;
             if (yi <= 0) return World.Blocks.Bedrock;
 
             var s = new ColumnSample();
@@ -402,20 +439,28 @@ namespace DivergentGenesis.World
             BiomeInfo info = BiomeSystem.Get(biome);
 
             byte top = info.SurfaceBlock;
-            if (top == World.Blocks.Stone && biome != BiomeType.Rocky && biome != BiomeType.Mountain &&
-                biome != BiomeType.Mesa) top = World.Blocks.Grass;
-            if (hi < WorldConfig.SeaLevel && (biome == BiomeType.DeepOcean || biome == BiomeType.Ocean)) top = World.Blocks.Gravel;
+            if (node)
+            {
+                if (hi <= seaLevel) top = World.Blocks.Sand;
+            }
+            else
+            {
+                if (top == World.Blocks.Stone && biome != BiomeType.Rocky && biome != BiomeType.Mountain &&
+                    biome != BiomeType.Mesa) top = World.Blocks.Grass;
+                if (hi < seaLevel && (biome == BiomeType.DeepOcean || biome == BiomeType.Ocean)) top = World.Blocks.Gravel;
+            }
 
             if (yi == hi) return top;
             if (yi >= hi - 3)
             {
+                if (node) return top == World.Blocks.Sand ? World.Blocks.Sand : World.Blocks.CandyDirt;
                 if (top == World.Blocks.Sand) return World.Blocks.Sand;
                 if (biome == BiomeType.Desert) return World.Blocks.Sandstone;
                 if (biome == BiomeType.Mesa) return World.Blocks.Terracotta;
                 if (top == World.Blocks.Stone) return World.Blocks.Stone;
                 return World.Blocks.Dirt;
             }
-            return World.Blocks.Stone;
+            return node ? World.Blocks.SherbetStone : World.Blocks.Stone;
         }
 
         public float GetTerrainHeight(int x, int z) { return _gen.HeightAt(x + 0.5f, z + 0.5f); }

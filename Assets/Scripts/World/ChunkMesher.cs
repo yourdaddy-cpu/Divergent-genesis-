@@ -387,6 +387,8 @@ namespace DivergentGenesis.World
                 case World.Blocks.Stone: return info.StoneColor;
                 case World.Blocks.Terracotta: return new Color32(178, 108, 62, 255);
                 case World.Blocks.Ash: return new Color32(104, 100, 96, 255);
+                case World.Blocks.FrostingGrass: return info.GrassColor;
+                case World.Blocks.SherbetStone: return info.StoneColor;
                 default: return info.GrassColor;
             }
         }

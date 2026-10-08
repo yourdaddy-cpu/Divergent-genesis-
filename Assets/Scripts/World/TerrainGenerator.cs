@@ -38,6 +38,14 @@ namespace DivergentGenesis.World
         public const int SeedCaverns = 12373;
         public const int SeedOres = 13487;
 
+        // the Node dimension gets its own noise so its landscape never rhymes
+        // with the overworld it was grown from
+        public const int SeedNodeRoll = 14591;
+        public const int SeedNodeDunes = 15733;
+        public const int SeedNodeMounds = 16831;
+        public const int SeedNodeBasin = 17939;
+        public const int SeedNodeGrove = 19051;
+
         public readonly int Seed;
 
         public TerrainGenerator(int seed) { Seed = seed; }
@@ -50,6 +58,8 @@ namespace DivergentGenesis.World
         /// </summary>
         public float HeightAt(float wx, float wz, int lod = 0)
         {
+            if (DimensionState.NodeActive) return NodeHeight(wx, wz, lod);
+
             int cOct = lod == 0 ? 5 : (lod == 1 ? 4 : 3);
             int hOct = lod == 0 ? 4 : (lod == 1 ? 3 : 2);
             int dOct = lod == 0 ? 3 : (lod == 1 ? 2 : 1);
@@ -117,6 +127,43 @@ namespace DivergentGenesis.World
             return h;
         }
 
+        // -------------------------------------------------------------- the Node
+        /// <summary>
+        /// The Node dimension's surface: soft rolling mounds, shallow cream seas
+        /// and no rivers at all. Same noise engine, different weights - so it is
+        /// exactly as deterministic and exactly as cheap as the overworld.
+        /// </summary>
+        private float NodeHeight(float wx, float wz, int lod)
+        {
+            int oct = lod == 0 ? 4 : (lod == 1 ? 3 : 2);
+            int dOct = lod == 0 ? 3 : 2;
+
+            float roll = DGNoise.Fbm2(wx * 0.0016f, wz * 0.0016f, Seed + SeedNodeRoll, oct);
+            float dunes = DGNoise.Fbm2(wx * 0.0075f, wz * 0.0075f, Seed + SeedNodeDunes, dOct);
+            float mounds = DGNoise.Ridged2(wx * 0.0021f, wz * 0.0021f, Seed + SeedNodeMounds, oct);
+
+            float h = NodeConfig.BaseHeight + roll * 11f + dunes * 2.6f + mounds * 24f;
+
+            // wide, shallow basins of cream where the ground would otherwise roll on
+            float basin = DGNoise.Fbm2(wx * 0.00042f, wz * 0.00042f, Seed + SeedNodeBasin, 2);
+            float sea = DGMath.SmoothStep(0.36f, 0.02f, basin);
+            if (sea > 0.001f)
+            {
+                float bed = NodeConfig.CreamSeaLevel - 4.5f;
+                h = Mathf.Lerp(h, Mathf.Min(h, bed), sea);
+            }
+
+            return Mathf.Clamp(h, 2f, NodeConfig.MaxHeight);
+        }
+
+        private static BiomeType NodeClassify(float height, float temperature, float humidity)
+        {
+            if (height <= NodeConfig.CreamSeaLevel + 1.5f) return BiomeType.NodeCream;
+            if (height >= NodeConfig.BaseHeight + 24f) return BiomeType.NodeCrystal;
+            if (humidity > 0.55f) return BiomeType.NodeForest;
+            return BiomeType.NodeMeadow;
+        }
+
         // ------------------------------------------------------------- climate
         public void Sample(float wx, float wz, int lod, ref ColumnSample s)
         {
@@ -125,6 +172,20 @@ namespace DivergentGenesis.World
 
             s.Continent = continent;
             s.Erosion = erosion;
+
+            if (DimensionState.NodeActive)
+            {
+                s.Height = NodeHeight(wx, wz, lod);
+                s.River = 0f;
+
+                int nOct = lod == 0 ? 3 : 2;
+                float nTemp = DGNoise.Fbm2(wx * 0.00006f, wz * 0.00006f, Seed + SeedNodeGrove, nOct) * 0.5f + 0.5f;
+                float nHumid = DGNoise.Fbm2(wx * 0.00009f, wz * 0.00009f, Seed + SeedNodeBasin + 7, nOct) * 0.5f + 0.5f;
+                s.Temperature = Mathf.Clamp01(nTemp);
+                s.Humidity = Mathf.Clamp01(nHumid);
+                s.Biome = NodeClassify(s.Height, s.Temperature, s.Humidity);
+                return;
+            }
 
             // one pass: height + river strength together, so the climate fields
             // and the terrain never disagree about where the water is
@@ -148,6 +209,12 @@ namespace DivergentGenesis.World
 
         private float HeightInternal(float wx, float wz, int lod, float continent, float erosion01, out float riverStrength)
         {
+            if (DimensionState.NodeActive)
+            {
+                riverStrength = 0f;
+                return NodeHeight(wx, wz, lod);
+            }
+
             int cOct = lod == 0 ? 5 : (lod == 1 ? 4 : 3);
             int hOct = lod == 0 ? 4 : (lod == 1 ? 3 : 2);
             int dOct = lod == 0 ? 3 : (lod == 1 ? 2 : 1);

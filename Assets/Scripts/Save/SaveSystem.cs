@@ -15,6 +15,7 @@ namespace DivergentGenesis.Save
         public int version = 1;
         public int seed;
         public float timeOfDay;
+        public int dimension;
 
         public float px, py, pz;
         public float yaw, pitch;

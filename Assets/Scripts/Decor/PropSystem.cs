@@ -187,6 +187,13 @@ namespace DivergentGenesis.Decor
 
         private void Place(Tile tile, Rng rng, int target, int edge, int wx0, int wz0, int level, bool trees)
         {
+            // The Node grows its scenery as blocks (gumdrop groves, cotton clouds),
+            // so the prop pass stays out of it entirely.
+            if (trees && DimensionState.NodeActive) return;
+
+            bool node = DimensionState.NodeActive;
+            float sea = node ? NodeConfig.CreamSeaLevel : WorldConfig.SeaLevel;
+
             for (int i = 0; i < target; i++)
             {
                 float fx = rng.NextFloat();
@@ -197,7 +204,7 @@ namespace DivergentGenesis.Decor
                 var column = new ColumnSample();
                 _gen.Sample(wx + 0.5f, wz + 0.5f, 1, ref column);
                 float h = column.Height;
-                if (h < WorldConfig.SeaLevel + 0.6f) continue;          // no trees in the sea
+                if (h < sea + 0.6f) continue;                             // no trees in the sea
                 if (h > 138f) continue;                                   // nothing on the ice caps
 
                 // reject steep ground
@@ -209,6 +216,9 @@ namespace DivergentGenesis.Decor
                                         Mathf.Max(Mathf.Abs(h3 - h), Mathf.Abs(h4 - h)));
                 if (slope > (trees ? 3.2f : 6f)) continue;
 
+                // never plant a forest through a village
+                if (StructureGenerator.InsideStructure(wx + 0.5f, wz + 0.5f, _seed, _gen, node)) continue;
+
                 PropType type;
                 if (trees)
                 {
@@ -218,7 +228,7 @@ namespace DivergentGenesis.Decor
                 else
                 {
                     type = rng.Chance(0.28f) ? PropType.Rock : PropType.Boulder;
-                    if (h < WorldConfig.SeaLevel + 1.5f) type = PropType.Rock;
+                    if (h < sea + 1.5f) type = PropType.Rock;
                 }
 
                 int idx = (int)type;

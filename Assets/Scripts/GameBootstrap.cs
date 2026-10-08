@@ -11,6 +11,10 @@ using DivergentGenesis.Audio;
 using DivergentGenesis.UI;
 using DivergentGenesis.Save;
 using DivergentGenesis.Environment;
+using DivergentGenesis.Dimension;
+using DivergentGenesis.Living;
+using DivergentGenesis.Building;
+using DivergentGenesis.Ritual;
 
 namespace DivergentGenesis
 {
@@ -56,6 +60,14 @@ namespace DivergentGenesis
         public InventoryPanel InventoryPanel { get; private set; }
         public CraftingPanel CraftingPanel { get; private set; }
         public SettingsPanel SettingsPanel { get; private set; }
+        public EntityManager Entities { get; private set; }
+        public StructureSystem Structures { get; private set; }
+        public DimensionManager Dimension { get; private set; }
+        public RitualSystem Ritual { get; private set; }
+        public BuildingSystem Building { get; private set; }
+        public LivingHud Living { get; private set; }
+        public HeldItemView HeldItem { get; private set; }
+        public DGPostEffect Post { get; private set; }
 
         private Text _loadingText;
         private Image _loadingBar;
@@ -104,6 +116,26 @@ namespace DivergentGenesis
             BuildPlayer();
             BuildUi();
 
+            var tierEnum = (GraphicsTier)Mathf.Clamp(tier, 0, 4);
+
+            Entities = BuildComponent<EntityManager>("Entities", transform,
+                e => e.Configure(seed, World, Player, Stats, Inventory, tierEnum));
+            Structures = BuildComponent<StructureSystem>("Structures", transform,
+                s2 => s2.Configure(World, Entities, Player, seed));
+            Building = BuildComponent<BuildingSystem>("Building", transform,
+                b => b.Configure(World, Player, View, Interaction, Inventory, Hud));
+            Ritual = BuildComponent<RitualSystem>("Ritual", transform,
+                r => r.Configure(World, Player, Interaction, Inventory, Entities, Hud));
+            Dimension = BuildComponent<DimensionManager>("Dimension", transform,
+                d => d.Configure(World, Props, Grass, Player, Stats, Entities, Sky, seed));
+            HeldItem = BuildComponent<HeldItemView>("HeldItem", Player.transform,
+                h => h.Configure(Player, View, Interaction, Inventory));
+
+            Living = LivingHud.Create(Hud.Canvas.transform, Inventory, Player, Interaction, Stats,
+                                      Entities, Building, Ritual, Hud);
+
+            if (Post != null) Post.Apply(tierEnum >= GraphicsTier.Medium, tierEnum >= GraphicsTier.High ? 1.15f : 1f);
+
             World.Player = Player.transform;
             Sky.Player = Player.transform;
             Drops.Configure(Player, Inventory);
@@ -151,7 +183,7 @@ namespace DivergentGenesis
             cam.nearClipPlane = 0.06f;
             cam.farClipPlane = 3200f;
             cam.fieldOfView = 62f;
-            cam.allowHDR = false;
+            cam.allowHDR = true;
             cam.allowMSAA = false;
 
             View = camGo.AddComponent<PlayerCamera>();
@@ -161,6 +193,9 @@ namespace DivergentGenesis
             Inventory = new InventoryModel();
             Interaction.Inventory = Inventory;
             Interaction.Audio = Audio;
+
+            // the HDR pass sits on the camera; without it a torch is just a pale cube
+            Post = camGo.AddComponent<DGPostEffect>();
         }
 
         private void BuildUi()
@@ -308,7 +343,8 @@ namespace DivergentGenesis
                 }
             }
 
-            data.edits = BlockEdits.Serialize();
+            data.dimension = Dimension != null ? (int)Dimension.Current : 0;
+            data.edits = BlockEdits.SerializeAll();
             SaveSystem.Save(data);
             if (Hud != null) Hud.Toast("World saved");
         }
@@ -337,7 +373,10 @@ namespace DivergentGenesis
                 Inventory.Notify();
             }
 
-            if (d.edits != null) BlockEdits.Deserialize(d.edits);
+            // the dimension has to be restored before the position: the terrain and
+            // the edit store are both plane specific
+            if (Dimension != null) Dimension.SetImmediate((DimensionId)Mathf.Clamp(d.dimension, 0, 1));
+            if (d.edits != null) BlockEdits.DeserializeAll(d.edits);
 
             if (Player != null)
                 Player.Teleport(new Vector3(d.px, d.py, d.pz));
@@ -355,11 +394,21 @@ namespace DivergentGenesis
             PlayerPrefs.Save();
 
             BlockEdits.Clear();
+            if (Dimension != null) Dimension.SetImmediate(DimensionId.Overworld);
+            if (Entities != null) Entities.Reset();
+            if (Ritual != null) Ritual.ClearCorruption();
             if (Props != null) Props.Configure(seed, World.Quality);
             if (Grass != null) Grass.Configure(seed, World.Quality);
             if (World != null) { World.WorldSeed = seed; }
             StartNewPlayer();
             if (Hud != null) Hud.Toast("New world seeded " + seed);
+        }
+
+        /// <summary>A way home that works from anywhere, including the Node.</summary>
+        public void TravelDimension()
+        {
+            if (Dimension == null) return;
+            Dimension.TravelTo(Dimension.Current == DimensionId.Overworld ? DimensionId.Node : DimensionId.Overworld);
         }
 
         public void TeleportHome()

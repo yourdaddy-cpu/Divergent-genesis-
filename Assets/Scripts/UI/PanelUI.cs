@@ -585,6 +585,14 @@ namespace DivergentGenesis.UI
             UIFactory.Size(home.gameObject, 200f, 52f);
             home.onClick.AddListener(() => { if (bootstrap != null) bootstrap.TeleportHome(); });
 
+            var travel = UIFactory.TextButton(row.transform, "Travel", "Travel", 22, new Color(0.32f, 0.24f, 0.42f, 0.95f), UIFactory.Text);
+            UIFactory.Size(travel.gameObject, 200f, 52f);
+            travel.onClick.AddListener(() =>
+            {
+                if (bootstrap != null) bootstrap.TravelDimension();
+                panel.Refresh();
+            });
+
             var newWorld = UIFactory.TextButton(row.transform, "New", "New world", 22, new Color(0.45f, 0.24f, 0.22f, 0.95f), UIFactory.Text);
             UIFactory.Size(newWorld.gameObject, 200f, 52f);
             newWorld.onClick.AddListener(() => { if (bootstrap != null) bootstrap.NewWorld(); });

@@ -5,8 +5,10 @@ An open-world, voxel-block survival adventure for **Android**, built in **Unity 
 A **140 × 140 km** continent, centred on the world origin, streamed in chunks as you walk.
 The horizon never ends, but the game never loads the whole world either.
 
-> **Status: Milestone 1 (playable core) is feature-complete and type-checks cleanly.
-> The APK is produced by GitHub Actions — see [Building the APK](#building-the-apk).**
+> **Status: Milestones 1 and 2 are feature-complete and type-check cleanly. The world
+> is alive — villages, bandits, herds, dragons and a second dimension — and the whole
+> thing is playable end to end. The APK is produced by GitHub Actions — see
+> [Building the APK](#building-the-apk).**
 
 ---
 
@@ -15,6 +17,7 @@ The horizon never ends, but the game never loads the whole world either.
 - [What it is](#what-it-is)
 - [How the 140 km world actually works](#how-the-140-km-world-actually-works)
 - [Controls](#controls)
+- [The Node, the ritual and what you can build](#the-node-the-ritual-and-what-you-can-build)
 - [Performance & device targets](#performance--device-targets)
 - [Project layout](#project-layout)
 - [Running the type-check without Unity](#running-the-type-check-without-unity)
@@ -50,7 +53,16 @@ Milestone 1 ships the full playable loop:
 | **Sky** | Full day/night cycle, sun & moon, stars, animated clouds, colour-graded fog, day/night tinting |
 | **World border** | 420 m energy wall at ±70 km with proximity warnings |
 | **Audio** | 100 % procedural — footsteps, block break/place, jumps, water, ambience, music stingers. No asset downloads |
-| **Saving** | Seed, player state, inventory, every block edit and time of day, as JSON |
+| **Saving** | Seed, player state, inventory, every block edit (both dimensions), dimension and time of day, as JSON |
+| **Villages** | Generated villages with roads, houses, farms, a well and a watchtower — inhabited |
+| **NPCs** | Villagers, farmers, smiths, scribes, guards and bandits, with schedules and trading |
+| **Creatures** | 68 mobs: herds, birds, predators, monsters, cute Node animals and four dragons |
+| **The Node** | A whole second dimension — cute, pastel, and reachable through a rift |
+| **The ritual** | Sacrifice four tools at an altar; in the Node it cracks the sky open and calls the Sovereign |
+| **Building** | 26 placeable kits — from a campfire to a cottage, a keep and a bridge — with ghost preview and real material costs |
+| **Recipe book** | The entire crafting tree in one window, tap to craft |
+| **Rendering** | HDR bloom and filmic tone mapping, emissive creature materials, additive glow, cracked sky |
+| **Held items** | Procedural animated tools and blocks in first person, with mining, swinging and sway |
 
 Nothing in this list is a placeholder. There are no greybox cubes standing in for
 final art — the meshes, materials, icons, UI and audio are all generated at runtime
@@ -118,13 +130,84 @@ under your crosshair is exact and instant regardless of streaming state.
 | **RUN** | Hold to sprint |
 | Tap a hotbar slot | Select it |
 | Crosshair + drag | Break blocks (hold) / place blocks (tap) |
+| **BUILD** | Open the build catalogue; then aim, **ROT** to turn the ghost, tap to build |
+| **BOOK** | Open the recipe book — search by category, tap a row to craft it |
+| **ROT** | Rotate the build ghost 90° |
 | ⬆ button | Open inventory, crafting and settings |
+| Tap a villager | Open their trade window |
+| Tap a cute mob | Pet it; it will follow you |
+| Tap a pedestal (holding a tool) | Sacrifice the tool |
+| Tap a full altar | Open the rift, or call the Sovereign |
 
 ### Keyboard / mouse (Editor only, `EditorInput.cs`)
 
 `WASD` move · `Space` jump / fly up · `Shift` sprint · `Ctrl` crouch / fly down ·
-`Mouse 1` break (hold) · `Mouse 2` place · `1`–`9` hotbar · `E` inventory ·
-`F` fly · `F3` debug overlay
+`Mouse 1` break (hold) / build while a ghost is up · `Mouse 2` place · `1`–`9` hotbar ·
+`E` inventory · `B` build catalogue · `R` rotate ghost · `Q` recipe book · `X` cancel
+build · `F` fly · `F3` debug overlay
+
+---
+
+## The Node, the ritual and what you can build
+
+### A second dimension
+
+The **Node** is a complete world, not a room. Cream seas, sherbet dunes, cotton
+highlands and gumdrop woodland, with its own blocks, its own biomes, its own sky
+and its own residents: Fluff, Bunbun, Cloudpup, Jellybean, Starlet, Puffcap and
+Nibble, who bounce, follow you if you pet them, and are extremely pleased to exist.
+
+It costs nothing to keep around. The game never holds two worlds in memory: entering
+the Node swaps the edit store, flips the terrain function's dimension flag, throws
+the streamed chunks away and rebuilds them in the new palette. One plane is live at
+a time, which is why the Node can be as large as the overworld.
+
+You get there by building a **rift**, finding a **shrine**, or performing the ritual.
+
+### The ritual
+
+An altar stands in a ring of four pedestals. Give each pedestal a *tool* — a real,
+held, breakable tool, which is destroyed forever — and the pedestal lights up. The
+offering is written into the world, so you can walk away and come back to a
+half-finished ritual.
+
+- In the **overworld**, a full altar tears open a rift into the Node.
+- In the **Node**, a full altar calls **The Node Sovereign**.
+
+When the Sovereign arrives, the sky stops being cyan. It goes purple, and then it
+cracks — a branching fracture field that drifts, pulses, swallows the light around
+its seams, and thickens the fog, until the thing is dead and the sky knits itself
+back together. Every ritual re-rolls the fracture pattern, so no two are alike.
+
+### Building
+
+Twenty-six kits, from a single campfire to a stone keep, a longhouse, a bridge, a
+farm, a market stall and a complete ritual site. Aim at the ground, a translucent
+ghost appears with a live footprint, rotate it in 90° steps and tap to commit. The
+blocks then place over the next second or two, so a house visibly rises out of the
+ground instead of popping into existence.
+
+Costs are *derived* from what a kit actually stamps rather than written by hand, so
+adding a wall to a cottage raises its price automatically. Blocks you can simply dig
+up — dirt, sand, gravel, the Node's own ground — are free.
+
+### Crafting
+
+A full progression from logs to dragonbone: home kit (beds, doors, chests, campfires,
+lamps, plaster and roof tiles, ladders, fences, bookshelves, anvil), the Node tier
+(candy cane, marshmallow, gumdrop, cute essence, cute cookies) and the ritual pieces
+(altar, pedestals, sigil, rift). The **Recipe Book** lists every one of them grouped
+by category, tells you what you are missing, and crafts it in a tap if you have the
+materials — a grid is still there for shaped work at a crafting table.
+
+### The interface
+
+The HUD keeps up with all of it: which dimension you are in, what you are standing
+in (with coordinates), what is under your crosshair, a context prompt, ritual progress
+("2 of 4 tools given"), live build validity and cost, and a boss bar with a name and
+a percentage while the Sovereign is up. The held item is a real animated model — it
+sways when you turn, bobs as you walk, and swings in time with the block you are
+breaking.
 
 ---
 
@@ -165,19 +248,24 @@ divergent-genesis/
 │   ├── Editor/
 │   │   ├── DGBuildScript.cs        Android build entry point for GameCI
 │   │   └── DGProjectSetup.cs       creates Main.unity, normalises ProjectSettings
-│   ├── Resources/Shaders/          DGTerrain, DGWater, DGFoliage, DGSky
+│   ├── Resources/Shaders/          DGTerrain, DGWater, DGFoliage, DGSky,
+│   │                               DGEntity, DGGlow, DGPost
 │   ├── Scenes/Main.unity           one GameObject, one component: GameBootstrap
 │   └── Scripts/
 │       ├── Core/                   WorldConfig, deterministic hashing/PRNG, noise
 │       ├── World/                  biomes, blocks, edits, coordinates, terrain,
 │       │                           chunk data, mesher, worker pool, streaming
-│       ├── Render/                 MaterialLibrary (runtime shader ownership)
+│       ├── Render/                 MaterialLibrary (runtime shader ownership), HDR post
 │       ├── Decor/                  primitive geometry, instanced props, grass
-│       ├── Items/                  item database, inventory + recipe model
-│       ├── Player/                 input, controller, stats, camera, interaction
+│       ├── Items/                  item database, inventory, recipes, recipe book
+│       ├── Living/                 mob definitions, procedural rigs, AI, spawning, trade
+│       ├── Building/               build kit catalogue + ghost placement system
+│       ├── Dimension/              the overworld / Node swap and rift travel
+│       ├── Ritual/                 the altar, the offerings and the Sovereign
+│       ├── Player/                 input, controller, stats, camera, held item, interaction
 │       ├── Audio/                  procedural sound synthesis
-│       ├── Environment/            sky, day/night, fog, world border
-│       ├── UI/                     UGUI factory, touch controls, HUD, panels
+│       ├── Environment/            sky, day/night, fog, corruption and cracks, world border
+│       ├── UI/                     UGUI factory, touch controls, HUD, world HUD, panels
 │       ├── Save/                   JSON world + player persistence
 │       └── GameBootstrap.cs        the one component that assembles everything
 ├── ProjectSettings/                Unity 6000.0.23f1, Android IL2CPP ARM64

@@ -68,17 +68,32 @@ namespace DivergentGenesis.Environment
             _fog = Color.Lerp(HorizonNight, HorizonDay, day);
             _fog = Color.Lerp(_fog, DawnGlow * 0.85f, dawn * 0.55f);
 
-            float fogDensity = Mathf.Lerp(0.0028f, 0.0011f, day);
+            // dimension palette + ritual corruption, applied on top of the cycle
+            SkyFX.Tick(Time.deltaTime);
+            Color zenithCol = Color.Lerp(ZenithNight, ZenithDay, day);
+            Color horizonCol = Color.Lerp(HorizonNight, HorizonDay, day);
+            SkyFX.Apply(ref zenithCol, ref horizonCol, ref _fog, ref _ambient, ref _sunColor, day);
+
+            float fogDensity = Mathf.Lerp(0.0028f, 0.0011f, day) * SkyFX.FogScale(DimensionState.NodeActive);
 
             MaterialLibrary.ApplyLighting(_sunDir, _sunColor, _ambient, _fog, fogDensity);
 
             if (_skyMat != null)
             {
                 float h = Mathf.Clamp01(_sunDir.y);
-                _skyMat.SetColor("_Zenith", Color.Lerp(ZenithNight, ZenithDay, day));
-                _skyMat.SetColor("_Horizon", Color.Lerp(HorizonNight, HorizonDay, day));
+                _skyMat.SetColor("_Zenith", zenithCol);
+                _skyMat.SetColor("_Horizon", horizonCol);
                 _skyMat.SetColor("_SunColor", _sunColor);
                 _skyMat.SetVector("_SunDir", new Vector4(_sunDir.x, _sunDir.y, _sunDir.z, 0f));
+                _skyMat.SetFloat("_Time", Time.time);
+
+                // the tear: purple, cracked, and brighter the closer the boss is
+                float crack = SkyFX.CrackAmount;
+                _skyMat.SetFloat("_Corrupt", SkyFX.Corruption);
+                _skyMat.SetFloat("_Cracks", crack);
+                _skyMat.SetFloat("_CrackSeed", SkyFX.CrackSeed);
+                _skyMat.SetColor("_CrackColor", NodeConfig.CrackColor);
+                _skyMat.SetFloat("_Flare", SkyFX.Flare);
             }
 
             if (_sky != null && Player != null)

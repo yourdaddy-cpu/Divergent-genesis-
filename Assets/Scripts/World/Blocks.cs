@@ -50,6 +50,28 @@ namespace DivergentGenesis.World
         public const byte Melon = 42;
         public const byte Wheat = 43;
 
+        // --- furniture, building kit and Node dimension blocks ----------------
+        public const byte Campfire = 44;
+        public const byte Bed = 45;
+        public const byte Door = 46;
+        public const byte PlasterWall = 47;
+        public const byte RoofTile = 48;
+        public const byte Lamp = 49;
+        public const byte Anvil = 50;
+        public const byte Chest = 51;
+        public const byte Bookshelf = 52;
+        public const byte Ladder = 53;
+        public const byte Fence = 54;
+        public const byte RitualAltar = 55;
+        public const byte RitualPedestal = 56;
+        public const byte NodePortal = 57;
+        public const byte CandyDirt = 58;
+        public const byte FrostingGrass = 59;
+        public const byte GumdropLog = 60;
+        public const byte GumdropLeaves = 61;
+        public const byte CottonBlock = 62;
+        public const byte SherbetStone = 63;
+
         public const byte Count = 64;
 
         // Built on first use, not in a static field initialiser: Table itself is a
@@ -170,6 +192,32 @@ namespace DivergentGenesis.World
             Add(t, Blocks.Pumpkin, "Pumpkin", 208, 132, 40, 216, 140, 46, 1.0f, ToolClass.Axe, false, true, true, BlockRender.Cube, 0, 0, 0, 0, false);
             Add(t, Blocks.Melon, "Melon", 96, 150, 62, 104, 160, 70, 1.0f, ToolClass.Axe, false, true, true, BlockRender.Cube, 0, 0, 0, 0, false);
             Add(t, Blocks.Wheat, "Wheat", 210, 180, 80, 216, 188, 88, 0.05f, ToolClass.None, false, false, false, BlockRender.Cross, 0, 0, 0, 0, true);
+
+            // ---- furniture and building kit -----------------------------------
+            Add(t, Blocks.Campfire, "Campfire", 148, 96, 52, 168, 108, 58, 1.0f, ToolClass.Axe, false, false, false, BlockRender.Cross, 0, 0, 0, 15, false);
+            Add(t, Blocks.Bed, "Bed", 176, 52, 58, 190, 62, 68, 0.6f, ToolClass.None, false, true, true, BlockRender.Cube, 0, 0, 0, 0, false);
+            Add(t, Blocks.Door, "Wooden Door", 158, 118, 70, 166, 126, 78, 1.0f, ToolClass.Axe, false, false, false, BlockRender.Cube, 0, 0, 0, 0, true);
+            Add(t, Blocks.PlasterWall, "Plaster Wall", 226, 219, 202, 234, 228, 212, 1.2f, ToolClass.Pickaxe, true, true, true, BlockRender.Cube, 0, 0, 0, 0, false);
+            Add(t, Blocks.RoofTile, "Roof Tile", 158, 74, 60, 172, 84, 68, 1.3f, ToolClass.Pickaxe, true, true, true, BlockRender.Cube, 0, 0, 0, 0, false);
+            Add(t, Blocks.Lamp, "Lamp", 255, 226, 158, 255, 232, 168, 0.5f, ToolClass.None, false, true, true, BlockRender.Cube, 0, 0, 0, 15, false);
+            Add(t, Blocks.Anvil, "Anvil", 76, 78, 84, 84, 86, 92, 3.2f, ToolClass.Pickaxe, true, true, true, BlockRender.Cube, 0, 0, 0, 0, false);
+            Add(t, Blocks.Chest, "Chest", 150, 110, 62, 160, 118, 68, 1.6f, ToolClass.Axe, false, true, true, BlockRender.Cube, 0, 0, 0, 0, false);
+            Add(t, Blocks.Bookshelf, "Bookshelf", 138, 104, 62, 146, 112, 68, 1.6f, ToolClass.Axe, false, true, true, BlockRender.Cube, 0, 0, 0, 0, false);
+            Add(t, Blocks.Ladder, "Ladder", 170, 132, 78, 178, 140, 84, 0.5f, ToolClass.Axe, false, false, false, BlockRender.Cross, 0, 0, 0, 0, true);
+            Add(t, Blocks.Fence, "Fence", 168, 132, 80, 176, 140, 86, 1.0f, ToolClass.Axe, false, true, false, BlockRender.Cube, 0, 0, 0, 0, true);
+
+            // ---- the ritual ---------------------------------------------------
+            Add(t, Blocks.RitualAltar, "Ritual Altar", 58, 42, 88, 74, 54, 108, 4.0f, ToolClass.Pickaxe, true, true, true, BlockRender.Cube, 0, 0, 0, 8, false);
+            Add(t, Blocks.RitualPedestal, "Ritual Pedestal", 92, 86, 104, 104, 98, 118, 3.0f, ToolClass.Pickaxe, true, true, true, BlockRender.Cube, 0, 0, 0, 4, false);
+            Add(t, Blocks.NodePortal, "Node Rift", 128, 240, 224, 168, 255, 236, 9999f, ToolClass.None, false, false, false, BlockRender.Cross, 0, 0, 0, 15, true);
+
+            // ---- the Node dimension --------------------------------------------
+            Add(t, Blocks.CandyDirt, "Marshmallow Soil", 244, 214, 224, 248, 222, 232, 0.5f, ToolClass.Shovel, false, true, true, BlockRender.Cube, 0, 0, 0, 0, false);
+            Add(t, Blocks.FrostingGrass, "Frosted Grass", 246, 206, 226, 255, 238, 250, 0.6f, ToolClass.Shovel, false, true, true, BlockRender.Cube, 0, 0, 0, 2, false);
+            Add(t, Blocks.GumdropLog, "Gumdrop Trunk", 196, 148, 176, 210, 160, 188, 2.0f, ToolClass.Axe, false, true, true, BlockRender.Cube, 0, 0, 0, 0, false);
+            Add(t, Blocks.GumdropLeaves, "Gumdrop Leaves", 172, 236, 216, 186, 246, 226, 0.2f, ToolClass.None, false, true, false, BlockRender.Cube, 0, 0, 0, 0, true);
+            Add(t, Blocks.CottonBlock, "Cotton Cloud", 250, 250, 255, 255, 255, 255, 0.3f, ToolClass.None, false, true, true, BlockRender.Cube, 0, 0, 0, 0, false);
+            Add(t, Blocks.SherbetStone, "Sherbet Stone", 232, 176, 148, 240, 186, 158, 1.6f, ToolClass.Pickaxe, true, true, true, BlockRender.Cube, 0, 0, 0, 0, false);
 
             return t;
         }

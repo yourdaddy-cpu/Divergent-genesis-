@@ -8,12 +8,15 @@ namespace DivergentGenesis.World
     {
         public int Cx, Cz, Level, Seed;
         public bool Voxels;
+        /// <summary>Which world the job belongs to. Stale epochs are discarded.</summary>
+        public int Gen;
     }
 
     public struct GenResult
     {
         public ChunkData Data;
         public int Cx, Cz, Level;
+        public int Gen;
     }
 
     /// <summary>
@@ -66,7 +69,7 @@ namespace DivergentGenesis.World
                 try
                 {
                     var data = ChunkGenerator.Generate(job.Cx, job.Cz, job.Level, job.Seed, job.Voxels);
-                    _ready.Enqueue(new GenResult { Data = data, Cx = job.Cx, Cz = job.Cz, Level = job.Level });
+                    _ready.Enqueue(new GenResult { Data = data, Cx = job.Cx, Cz = job.Cz, Level = job.Level, Gen = job.Gen });
                 }
                 catch (Exception e)
                 {

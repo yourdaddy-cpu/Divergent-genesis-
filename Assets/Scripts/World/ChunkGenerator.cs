@@ -118,13 +118,13 @@ namespace DivergentGenesis.World
             data.MinY = Mathf.Max(0, minY - 90);
 
             if (buildVoxels && level == 0)
-                BuildVoxels(data, seed);
+                BuildVoxels(data, seed, gen);
 
             return data;
         }
 
         // ------------------------------------------------------------- voxels
-        private static void BuildVoxels(ChunkData data, int seed)
+        private static void BuildVoxels(ChunkData data, int seed, TerrainGenerator gen)
         {
             int size = WorldConfig.ChunkSize;
             int slice = size * size;
@@ -183,13 +183,23 @@ namespace DivergentGenesis.World
                         biome != BiomeType.Mesa) top = World.Blocks.Grass;
 
                     byte sub = World.Blocks.Dirt;
-                    if (top == World.Blocks.Sand) sub = World.Blocks.Sand;
+                    bool node = DimensionState.NodeActive;
+                    byte deep = node ? World.Blocks.SherbetStone : World.Blocks.Stone;
+                    int seaLevel = node ? Mathf.RoundToInt(NodeConfig.CreamSeaLevel)
+                                        : Mathf.RoundToInt(WorldConfig.SeaLevel);
+
+                    if (node)
+                    {
+                        sub = World.Blocks.CandyDirt;
+                        if (h <= seaLevel + 1) sub = World.Blocks.Sand;
+                    }
+                    else if (top == World.Blocks.Sand) sub = World.Blocks.Sand;
                     else if (biome == BiomeType.Desert) sub = World.Blocks.Sandstone;
                     else if (biome == BiomeType.Mesa) sub = World.Blocks.Terracotta;
                     else if (top == World.Blocks.Stone) sub = World.Blocks.Stone;
 
-                    bool underWater = h < WorldConfig.SeaLevel;
-                    if (underWater && (biome == BiomeType.DeepOcean || biome == BiomeType.Ocean))
+                    bool underWater = h < seaLevel;
+                    if (!node && underWater && (biome == BiomeType.DeepOcean || biome == BiomeType.Ocean))
                         sub = World.Blocks.Gravel;
 
                     int bedrockDepth = (int)(Hash.Float01(wx, wz, seed + 4242) * 3f);
@@ -204,9 +214,9 @@ namespace DivergentGenesis.World
                         if (y <= bedrockDepth) b = World.Blocks.Bedrock;
                         else if (y == h) b = top;
                         else if (y >= h - 3) b = sub;
-                        else b = World.Blocks.Stone;
+                        else b = deep;
 
-                        if (b == World.Blocks.Stone && y > 2)
+                        if (!node && b == World.Blocks.Stone && y > 2)
                         {
                             int oy = y / OreStep;
                             byte ore = oreCells[gxo + ocx * (oy + ocy * gzo)];
@@ -227,12 +237,15 @@ namespace DivergentGenesis.World
 
                     if (underWater)
                     {
-                        for (int y = h + 1; y <= WorldConfig.SeaLevel; y++)
+                        for (int y = h + 1; y <= seaLevel; y++)
                             blocks[colBase + y * slice] = World.Blocks.Water;
                     }
                 }
             }
 
+            // villages, camps and ritual sites are stamped before the player's
+            // edits, so anything you build inside one survives regeneration
+            StructureGenerator.Stamp(data, gen, seed);
             ApplyEdits(data);
         }
 

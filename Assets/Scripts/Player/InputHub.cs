@@ -26,6 +26,14 @@ namespace DivergentGenesis.Player
         public static bool ToggleViewPressed;
         public static bool EscapePressed;
 
+        // --- milestone 2: building, the recipe book, and the ritual -----------
+        public static bool BuildPressed;         // open the build catalogue
+        public static bool BuildRotatePressed;   // spin the placement ghost
+        public static bool BuildPlacePressed;    // confirm a ghost (also uses Interact)
+        public static bool BuildCancelPressed;
+        public static bool RecipeBookPressed;
+        public static bool RitualPressed;        // context action on the altar
+
         public static bool UIBlocked;            // true while a panel is open
 
         public static void ClearFrame()
@@ -38,6 +46,12 @@ namespace DivergentGenesis.Player
             ToggleViewPressed = false;
             EscapePressed = false;
             HotbarPressed = -1;
+            BuildPressed = false;
+            BuildRotatePressed = false;
+            BuildPlacePressed = false;
+            BuildCancelPressed = false;
+            RecipeBookPressed = false;
+            RitualPressed = false;
         }
 
         public static void Reset()
@@ -50,6 +64,12 @@ namespace DivergentGenesis.Player
             HotbarPressed = -1;
             ToggleViewPressed = false;
             EscapePressed = false;
+            BuildPressed = false;
+            BuildRotatePressed = false;
+            BuildPlacePressed = false;
+            BuildCancelPressed = false;
+            RecipeBookPressed = false;
+            RitualPressed = false;
         }
     }
 

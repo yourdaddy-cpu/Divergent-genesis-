@@ -29,7 +29,17 @@ namespace UnityEngine
     public enum RuntimePlatform { WindowsPlayer = 2, Android = 11, IPhonePlayer = 8, LinuxPlayer = 13 }
     public enum ScreenOrientation { Portrait, PortraitUpsideDown, LandscapeLeft, LandscapeRight, AutoRotation }
     public enum TouchPhase { Began, Moved, Ended, Canceled, Stationary }
-    public enum KeyCode { None = 0, Space = 32, Escape = 27, E = 101, F = 102, F1 = 282, LeftShift = 304, RightShift = 303, LeftControl = 306, RightControl = 305, Alpha0 = 320, Alpha1 = 321, Alpha9 = 329 }
+    public enum KeyCode
+    {
+        None = 0, Tab = 9, Return = 13, Escape = 27, Space = 32,
+        A = 97, B = 98, C = 99, D = 100, E = 101, F = 102, G = 103, H = 104, I = 105,
+        J = 106, K = 107, L = 108, M = 109, N = 110, O = 111, P = 112, Q = 113, R = 114,
+        S = 115, T = 116, U = 117, V = 118, W = 119, X = 120, Y = 121, Z = 122,
+        F1 = 282, F2 = 283, F3 = 284, F4 = 285, F5 = 286, F6 = 287,
+        RightShift = 303, LeftShift = 304, RightControl = 305, LeftControl = 306,
+        Alpha0 = 320, Alpha1 = 321, Alpha2 = 322, Alpha3 = 323, Alpha4 = 324,
+        Alpha5 = 325, Alpha6 = 326, Alpha7 = 327, Alpha8 = 328, Alpha9 = 329
+    }
     public enum RenderMode { ScreenSpaceOverlay = 0, ScreenSpaceCamera = 1, WorldSpace = 2 }
     public enum LogType { Error = 0, Assert = 1, Warning = 2, Log = 3, Exception = 4 }
     public enum SendMessageOptions { RequireReceiver, DontRequireReceiver }
@@ -598,6 +608,17 @@ namespace UnityEngine
     public class Shader : Object
     {
         public static Shader Find(string n) { return new Shader { name = n }; }
+        public static void SetGlobalColor(string n, Color c) { }
+        public static void SetGlobalColor(int n, Color c) { }
+        public static void SetGlobalFloat(string n, float f) { }
+        public static void SetGlobalFloat(int n, float f) { }
+        public static void SetGlobalInt(string n, int i) { }
+        public static void SetGlobalVector(string n, Vector4 v) { }
+        public static void SetGlobalVector(int n, Vector4 v) { }
+        public static void SetGlobalTexture(string n, Texture t) { }
+        public static void SetGlobalTexture(int n, Texture t) { }
+        public static void EnableKeyword(string k) { }
+        public static void DisableKeyword(string k) { }
     }
 
     public class Texture : Object
@@ -718,6 +739,8 @@ namespace UnityEngine
 
     public class MultiMeshRenderer : Renderer { }
 
+    public enum CameraClearFlags { Skybox = 1, Color = 2, SolidColor = 2, Depth = 3, Nothing = 4 }
+
     public class Camera : Behaviour
     {
         public float fieldOfView { get; set; }
@@ -727,9 +750,13 @@ namespace UnityEngine
         public bool allowMSAA { get; set; }
         public bool allowDynamicResolution { get; set; }
         public Color backgroundColor { get; set; }
+        public CameraClearFlags clearFlags { get; set; }
+        public RenderTexture targetTexture { get; set; }
+        public float aspect { get; set; }
         public int cullingMask { get; set; }
         public int depth { get; set; }
         public bool orthographic { get; set; }
+        public float orthographicSize { get; set; }
         public static Camera main { get { return null; } }
         public Ray ScreenPointToRay(Vector3 p) { return new Ray(); }
         public void Render() { }
@@ -967,6 +994,50 @@ namespace UnityEngine
     {
         public static int Get(string n) { return n.GetHashCode(); }
     }
+}
+
+namespace UnityEngine
+{
+    public enum RenderTextureFormat { ARGB32 = 0, Depth = 1, ARGBHalf = 2, RGB565 = 4, Default = 7, R8 = 15 }
+    public enum RenderTextureReadWrite { Default = 0, Linear = 1, sRGB = 2 }
+    public enum ImageEffectOpaqueMode { None = 0 }
+
+    public class RenderTexture : Texture
+    {
+        public RenderTexture(int width, int height, int depth) { this.width = width; this.height = height; }
+        public RenderTexture(int width, int height, int depth, RenderTextureFormat format)
+        { this.width = width; this.height = height; this.format = format; }
+        public RenderTexture(int width, int height, int depth, RenderTextureFormat format, RenderTextureReadWrite rw)
+        { this.width = width; this.height = height; this.format = format; }
+        public RenderTextureFormat format { get; set; }
+        public int depth { get; set; }
+        public bool useMipMap { get; set; }
+        public bool autoGenerateMips { get; set; }
+        public bool IsCreated() { return true; }
+        public bool Create() { return true; }
+        public void Release() { }
+        public void DiscardContents() { }
+        public static RenderTexture GetTemporary(int w, int h) { return new RenderTexture(w, h, 0); }
+        public static RenderTexture GetTemporary(int w, int h, int depth) { return new RenderTexture(w, h, depth); }
+        public static RenderTexture GetTemporary(int w, int h, int depth, RenderTextureFormat f) { return new RenderTexture(w, h, depth, f); }
+        public static void ReleaseTemporary(RenderTexture rt) { }
+        public static RenderTexture active { get; set; }
+    }
+
+    public static class Graphics
+    {
+        public static void Blit(Texture source, RenderTexture dest) { }
+        public static void Blit(Texture source, RenderTexture dest, Material mat) { }
+        public static void Blit(Texture source, RenderTexture dest, Material mat, int pass) { }
+        public static void Blit(Texture source, Material mat) { }
+        public static void DrawMesh(Mesh m, Vector3 pos, Quaternion q, Material mat, int layer) { }
+        public static void DrawMesh(Mesh m, Vector3 pos, Quaternion q, Material mat, int layer, Camera cam) { }
+        public static void DrawMeshInstanced(Mesh m, int sub, Material mat, Matrix4x4[] matrices) { }
+    }
+
+    public sealed class ImageEffectAllowedInSceneViewAttribute : Attribute { }
+    public sealed class ImageEffectOpaqueAttribute : Attribute { }
+    public sealed class ExecuteAlways : Attribute { }
 }
 
 namespace UnityEngine.Rendering

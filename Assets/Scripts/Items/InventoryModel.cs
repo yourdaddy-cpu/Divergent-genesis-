@@ -147,6 +147,7 @@ namespace DivergentGenesis.Items
             Add(ItemId.WoodenSword, 1);
             Add(ItemId.Torch, 16);
             Add(ItemId.Bread, 6);
+            Add(ItemId.Coin, 12);
             Add(ItemId.CraftingTable, 1);
             Selected = 0;
             Notify();
@@ -185,43 +186,80 @@ namespace DivergentGenesis.Items
                 R("Stick", ItemId.Stick, 4, false, "P", "P"),
                 R("Crafting Table", ItemId.CraftingTable, 1, false, "PP", "PP"),
                 R("Furnace", ItemId.Furnace, 1, false, "CCC", "C C", "CCC"),
-                R("Torch", ItemId.Torch, 4, false, "C", "S"),
+                R("Torch", ItemId.Torch, 4, false, "K", "S"),
+                R("Ladder", ItemId.Ladder, 3, true, "S S", "SSS", "S S"),
+                R("Fence", ItemId.Fence, 3, true, "PSP", "PSP"),
+                R("Chest", ItemId.Chest, 1, true, "PPP", "P P", "PPP"),
+                R("Bookshelf", ItemId.Bookshelf, 1, true, "PPP", "WWW", "PPP"),
+
+                // --- the home kit --------------------------------------------------
+                R("Bed", ItemId.Bed, 1, true, "WWW", "PPP"),
+                R("Wooden Door", ItemId.Door, 1, true, "PP", "PP", "PP"),
+                R("Campfire", ItemId.Campfire, 1, false, " S ", "SKS", "LLL"),
+                R("Lamp", ItemId.Lamp, 1, true, " K ", "KGK", " K "),
+                R("Plaster Wall", ItemId.PlasterWall, 8, true, "eee", "eCe", "eee"),
+                R("Roof Tile", ItemId.RoofTile, 6, true, "CC", "CC"),
+                R("Anvil", ItemId.Anvil, 1, true, "III", " I ", "III"),
 
                 // --- stone tools ----------------------------------------------------
                 R("Wooden Sword", ItemId.WoodenSword, 1, false, "P", "P", "S"),
                 R("Wooden Pickaxe", ItemId.WoodenPickaxe, 1, false, "PPP", " S ", " S "),
                 R("Wooden Axe", ItemId.WoodenAxe, 1, false, "PP", "PS", " S"),
                 R("Wooden Shovel", ItemId.WoodenShovel, 1, false, "P", "S", "S"),
-                R("Stone Sword", ItemId.StoneSword, 1, true, "P", "P", "C"),
+                R("Stone Sword", ItemId.StoneSword, 1, true, "C", "C", "S"),
                 R("Stone Pickaxe", ItemId.StonePickaxe, 1, true, "CCC", " S ", " S "),
                 R("Stone Axe", ItemId.StoneAxe, 1, true, "CC", "CS", " S"),
                 R("Stone Shovel", ItemId.StoneShovel, 1, true, "C", "S", "S"),
 
                 // --- iron tools -----------------------------------------------------
-                R("Iron Sword", ItemId.IronSword, 1, true, "P", "P", "I"),
+                R("Iron Sword", ItemId.IronSword, 1, true, "I", "I", "S"),
                 R("Iron Pickaxe", ItemId.IronPickaxe, 1, true, "III", " S ", " S "),
                 R("Iron Axe", ItemId.IronAxe, 1, true, "II", "IS", " S"),
                 R("Iron Shovel", ItemId.IronShovel, 1, true, "I", "S", "S"),
 
                 // --- diamond tools --------------------------------------------------
-                R("Diamond Sword", ItemId.DiamondSword, 1, true, "P", "P", "D"),
+                R("Diamond Sword", ItemId.DiamondSword, 1, true, "D", "D", "S"),
                 R("Diamond Pickaxe", ItemId.DiamondPickaxe, 1, true, "DDD", " S ", " S "),
                 R("Diamond Axe", ItemId.DiamondAxe, 1, true, "DD", "DS", " S"),
                 R("Diamond Shovel", ItemId.DiamondShovel, 1, true, "D", "S", "S"),
 
+                // --- dragonbone tools: tier four ------------------------------------
+                R("Dragonbone Sword", ItemId.DragonboneSword, 1, true, "H", "H", "S"),
+                R("Dragonbone Pickaxe", ItemId.DragonbonePickaxe, 1, true, "HHH", " S ", " S "),
+                R("Dragonbone Axe", ItemId.DragonboneAxe, 1, true, "HH", "HS", " S"),
+                R("Dragonbone Shovel", ItemId.DragonboneShovel, 1, true, "H", "S", "S"),
+
                 // --- blocks ----------------------------------------------------------
-                R("Stone Bricks", ItemId.StoneBricks, 4, true, "SS", "SS"),
-                R("Bricks", ItemId.Bricks, 1, true, "SS", "SS"),
+                R("Stone Bricks", ItemId.StoneBricks, 4, true, "CC", "CC"),
+                R("Bricks", ItemId.Bricks, 1, true, "yy", "yy"),
                 R("Iron Block", ItemId.IronBlock, 1, true, "III", "III", "III"),
-                R("Copper Block", ItemId.CopperBlock, 1, true, "CCC", "CCC", "CCC"),
+                R("Copper Block", ItemId.CopperBlock, 1, true, "rrr", "rrr", "rrr"),
                 R("Aluminium Block", ItemId.AluminiumBlock, 1, true, "AAA", "AAA", "AAA"),
                 R("Diamond Block", ItemId.DiamondBlock, 1, true, "DDD", "DDD", "DDD"),
-                R("Coal Block", ItemId.CoalBlock, 1, true, "CCC", "CCC", "CCC"),
-                R("Glass", ItemId.Glass, 1, true, "SSS", "SSS", "SSS"),
-                R("Sandstone", ItemId.Sandstone, 1, true, "DDD", "DDD", "DDD"),
+                R("Coal Block", ItemId.CoalBlock, 1, true, "KKK", "KKK", "KKK"),
+                R("Glass", ItemId.Glass, 1, true, "ee", "ee"),
+                R("Sandstone", ItemId.Sandstone, 1, true, "eee", "eee", "eee"),
                 R("Bucket", ItemId.Bucket, 1, true, "I I", " I "),
                 R("Bowl", ItemId.Bowl, 4, true, "P P", " P "),
-                R("Bread", ItemId.Bread, 1, true, "WWW")
+                R("Bread", ItemId.Bread, 1, true, "WWW"),
+
+                // --- food, cooked properly -------------------------------------------
+                R("Cute Cookie", ItemId.CuteCookie, 4, false, "WU", "WU"),
+                R("Cloud Cake", ItemId.CuteCake, 1, true, "MMM", "UEU", "MMM"),
+
+                // --- the Node dimension ----------------------------------------------
+                R("Node Shard", ItemId.NodeShard, 2, true, "JJ", "JJ"),
+                R("Cute Essence", ItemId.CuteEssence, 2, true, "OOO", "OvO", "OOO"),
+                R("Candy Cane", ItemId.CandyCane, 2, true, "E", "J", "J"),
+                R("Marshmallow", ItemId.Marshmallow, 2, false, "OO"),
+                R("Gumdrop", ItemId.Gumdrop, 2, false, "vv"),
+
+                // --- travel and the ritual -------------------------------------------
+                R("Node Rift", ItemId.NodePortal, 1, true, "NEN", "EEE", "NSN"),
+                R("Ritual Sigil", ItemId.RitualSigil, 1, true, "NEN", "EKE", "NEN"),
+                R("Ritual Altar", ItemId.RitualAltar, 1, true, "OOO", "OEO", "JJJ"),
+                R("Ritual Pedestal", ItemId.RitualPedestal, 4, true, "JJ", "JJ"),
+                R("Coin", ItemId.Coin, 4, false, "N")
             };
             return list;
         }
@@ -239,6 +277,48 @@ namespace DivergentGenesis.Items
                 case 'A': return ItemId.AluminiumIngot;
                 case 'D': return ItemId.Diamond;
                 case 'W': return ItemId.WheatSheaf;
+
+                // stone, glass and the ore blocks
+                case 'B': return ItemId.StoneBricks;
+                case 'K': return ItemId.Coal;
+                case 'X': return ItemId.Bricks;
+                case 'G': return ItemId.Glass;
+                case 'T': return ItemId.RoofTile;
+                case 'V': return ItemId.PlasterWall;
+                case 'e': return ItemId.Sand;
+                case 'y': return ItemId.Clay;
+                case 'r': return ItemId.CopperIngot;
+
+                // lower case = a crafted construct used as an ingredient
+                case 't': return ItemId.Torch;
+                case 'b': return ItemId.Bed;
+                case 'd': return ItemId.Door;
+                case 'c': return ItemId.Campfire;
+                case 'k': return ItemId.Chest;
+                case 'n': return ItemId.Anvil;
+                case 'a': return ItemId.Lamp;
+                case 'f': return ItemId.Fence;
+                case 's': return ItemId.Ladder;
+                case 'o': return ItemId.Bookshelf;
+                case 'p': return ItemId.CraftingTable;
+                case 'q': return ItemId.Furnace;
+                case 'l': return ItemId.GumdropLog;
+                case 'v': return ItemId.GumdropLeaves;
+
+                // the Node and what came through it
+                case 'M': return ItemId.Marshmallow;
+                case 'U': return ItemId.Gumdrop;
+                case 'Z': return ItemId.CandyCane;
+                case 'O': return ItemId.CottonBlock;
+                case 'F': return ItemId.FrostingGrass;
+                case 'Y': return ItemId.CandyDirt;
+                case 'J': return ItemId.SherbetStone;
+                case 'E': return ItemId.CuteEssence;
+                case 'N': return ItemId.NodeShard;
+                case 'R': return ItemId.RitualSigil;
+                case 'Q': return ItemId.DragonScale;
+                case 'H': return ItemId.Dragonbone;
+
                 default: return ItemId.None;
             }
         }

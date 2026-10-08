@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using DivergentGenesis.Core;
 using DivergentGenesis.World;
@@ -35,6 +36,17 @@ namespace DivergentGenesis.Player
         public Vector3 HighlightSize { get; private set; }
         public bool HasHighlight { get; private set; }
         public event Action Changed;
+
+        /// <summary>The block under the crosshair, for systems that need exact coordinates.</summary>
+        public BlockHit TargetBlock { get { return _block; } }
+        /// <summary>The creature under the crosshair, if any.</summary>
+        public IDamageable TargetEntity { get { return _entity; } }
+
+        /// <summary>
+        /// Interact handlers that get first refusal on a tap: the ritual altar,
+        /// the building ghost, villager trading. Returning true consumes the tap.
+        /// </summary>
+        public static readonly List<Func<bool>> InteractHooks = new List<Func<bool>>();
 
         private BlockHit _block;
         private PropHit _prop;
@@ -104,7 +116,8 @@ namespace DivergentGenesis.Player
             if (_entity != null)
             {
                 CurrentKind = TargetKind.Entity;
-                TargetName = _entity.GetType().Name;
+                var living = _entity as Living.LivingEntity;
+                TargetName = living != null ? living.DisplayName : _entity.GetType().Name;
                 HasHighlight = true;
                 HighlightCenter = _entity.Center;
                 HighlightSize = Vector3.one * (_entity.Radius * 2f);
@@ -139,8 +152,14 @@ namespace DivergentGenesis.Player
 
         private IDamageable FindEntity(Vector3 dir, float maxDist)
         {
-            // M1: nothing alive yet. M2 mobs register here.
-            return null;
+            var mgr = Living.EntityManager.Instance;
+            if (mgr == null) return null;
+
+            float dist;
+            var hit = mgr.Raycast(Player != null ? Player.EyePosition : transform.position, dir, maxDist, out dist);
+            if (hit == null) return null;
+            if (dist > maxDist) return null;
+            return hit;
         }
 
         private void SetNothing()
@@ -311,6 +330,25 @@ namespace DivergentGenesis.Player
         /// <summary>Tap the place/interact button.</summary>
         public void Interact()
         {
+            // the ritual altar, the build ghost and the trade window all get a
+            // chance to claim the tap before ordinary placement does
+            for (int i = 0; i < InteractHooks.Count; i++)
+            {
+                var hook = InteractHooks[i];
+                if (hook != null && hook()) return;
+            }
+
+            if (CurrentKind == TargetKind.Entity && _entity != null)
+            {
+                var living = _entity as Living.LivingEntity;
+                var mgr = Living.EntityManager.Instance;
+                if (living != null && mgr != null)
+                {
+                    if (living.Def.Petable) { mgr.PetEntity(living); return; }
+                    if (living.Def.Tradable) { mgr.RequestTrade(living); return; }
+                }
+            }
+
             if (CurrentKind == TargetKind.Block && _block.Hit)
             {
                 PlaceBlock();

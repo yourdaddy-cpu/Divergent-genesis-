@@ -21,6 +21,12 @@ namespace DivergentGenesis.Items
         CoalBlock = 36, Sandstone = 37, Lava = 38, StoneBricks = 39, DeadBush = 40,
         Pumpkin = 41, Melon = 42, Wheat = 43,
 
+        Campfire = 44, Bed = 45, Door = 46, PlasterWall = 47, RoofTile = 48, Lamp = 49,
+        Anvil = 50, Chest = 51, Bookshelf = 52, Ladder = 53, Fence = 54,
+        RitualAltar = 55, RitualPedestal = 56, NodePortal = 57,
+        CandyDirt = 58, FrostingGrass = 59, GumdropLog = 60, GumdropLeaves = 61,
+        CottonBlock = 62, SherbetStone = 63,
+
         Stick = 64, Coal = 65, RawIron = 66, RawCopper = 67, RawAluminium = 68, RawDiamond = 69,
         IronIngot = 70, CopperIngot = 71, AluminiumIngot = 72, Diamond = 73,
         Apple = 74, RawMeat = 75, CookedMeat = 76, WheatSheaf = 77, Bread = 78, Bone = 79,
@@ -31,6 +37,17 @@ namespace DivergentGenesis.Items
         WoodenShovel = 92, StoneShovel = 93, IronShovel = 94, DiamondShovel = 95,
 
         Bucket = 96, WaterBucket = 97, Bowl = 98, MelonSlice = 99, WheatSeeds = 100
+,
+
+        // --- dragon, ritual and Node dimension materials ----------------------
+        DragonScale = 101, DragonHeart = 102, CuteEssence = 103, NodeShard = 104,
+        RitualSigil = 105, CandyCane = 106, Marshmallow = 107, Gumdrop = 108,
+        Dragonbone = 109, Coin = 110,
+
+        // tier four: made from the thing that tried to eat you
+        DragonboneSword = 111, DragonbonePickaxe = 112, DragonboneAxe = 113, DragonboneShovel = 114,
+
+        CuteCookie = 115, DragonSteak = 116, CuteCake = 117
     }
 
     public struct ItemDef
@@ -119,6 +136,27 @@ namespace DivergentGenesis.Items
             MakeFood(t, ItemId.CookedMeat, "Cooked Meat", 64, new Color32(178, 112, 66, 255), 7f);
             MakeFood(t, ItemId.WheatSheaf, "Wheat", 64, new Color32(216, 190, 92, 255), 1f);
             MakeFood(t, ItemId.Bread, "Bread", 64, new Color32(206, 164, 92, 255), 6f);
+
+            // --- dimensions, dragons and civility -------------------------------
+            MakeMaterial(t, ItemId.DragonScale, "Dragon Scale", 64, new Color32(198, 62, 96, 255));
+            MakeMaterial(t, ItemId.DragonHeart, "Dragon Heart", 16, new Color32(214, 48, 72, 255));
+            MakeMaterial(t, ItemId.CuteEssence, "Cute Essence", 64, new Color32(255, 168, 216, 255));
+            MakeMaterial(t, ItemId.NodeShard, "Node Shard", 64, new Color32(120, 240, 230, 255));
+            MakeMaterial(t, ItemId.RitualSigil, "Ritual Sigil", 16, new Color32(168, 96, 232, 255));
+            MakeMaterial(t, ItemId.CandyCane, "Candy Cane", 64, new Color32(240, 88, 96, 255));
+            MakeMaterial(t, ItemId.Marshmallow, "Marshmallow", 64, new Color32(252, 244, 236, 255));
+            MakeMaterial(t, ItemId.Gumdrop, "Gumdrop", 64, new Color32(124, 226, 190, 255));
+            MakeMaterial(t, ItemId.Dragonbone, "Dragonbone", 64, new Color32(232, 226, 208, 255));
+            MakeMaterial(t, ItemId.Coin, "Coin", 999, new Color32(246, 206, 88, 255));
+
+            MakeFood(t, ItemId.CuteCookie, "Cute Cookie", 64, new Color32(226, 178, 128, 255), 5f);
+            MakeFood(t, ItemId.DragonSteak, "Dragon Steak", 16, new Color32(196, 84, 72, 255), 10f);
+            MakeFood(t, ItemId.CuteCake, "Cloud Cake", 16, new Color32(255, 208, 232, 255), 8f);
+
+            MakeTool(t, ItemId.DragonboneSword, "Dragonbone Sword", ToolClass.Sword, 4, 13f, 2400, new Color32(226, 190, 200, 255));
+            MakeTool(t, ItemId.DragonbonePickaxe, "Dragonbone Pickaxe", ToolClass.Pickaxe, 4, 10f, 2400, new Color32(226, 190, 200, 255));
+            MakeTool(t, ItemId.DragonboneAxe, "Dragonbone Axe", ToolClass.Axe, 4, 11f, 2400, new Color32(226, 190, 200, 255));
+            MakeTool(t, ItemId.DragonboneShovel, "Dragonbone Shovel", ToolClass.Shovel, 4, 9f, 2400, new Color32(226, 190, 200, 255));
 
             MakeTool(t, ItemId.WoodenSword, "Wooden Sword", ToolClass.Sword, 0, 4f, 60, new Color32(164, 130, 80, 255));
             MakeTool(t, ItemId.StoneSword, "Stone Sword", ToolClass.Sword, 1, 5.5f, 132, new Color32(140, 140, 142, 255));

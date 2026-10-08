@@ -14,8 +14,23 @@ namespace DivergentGenesis.World
     {
         private const int CoordBias = 1 << 18;   // 262144, covers +/-131071 m
 
-        private static readonly Dictionary<long, byte> Placed = new Dictionary<long, byte>(1024);
-        private static readonly Dictionary<long, byte> Removed = new Dictionary<long, byte>(1024);
+        /// <summary>One dimension's worth of edits. Swapped wholesale on a plane change.</summary>
+        private sealed class Store
+        {
+            public Dictionary<long, byte> Placed;
+            public Dictionary<long, byte> Removed;
+
+            public Store() { Placed = new Dictionary<long, byte>(1024); Removed = new Dictionary<long, byte>(1024); }
+            public Store(Dictionary<long, byte> p, Dictionary<long, byte> r) { Placed = p; Removed = r; }
+        }
+
+        private static Dictionary<long, byte> Placed = new Dictionary<long, byte>(1024);
+        private static Dictionary<long, byte> Removed = new Dictionary<long, byte>(1024);
+
+        private static readonly Dictionary<int, Store> Parked = new Dictionary<int, Store>(4);
+        private static int _dimension;
+
+        public static int CurrentDimension { get { return _dimension; } }
 
         /// <summary>Chunks whose voxels no longer match the stored edits.</summary>
         public static readonly HashSet<long> DirtyChunks = new HashSet<long>();
@@ -105,22 +120,38 @@ namespace DivergentGenesis.World
             public int x, y, z;
             public byte block;
             public byte removed;   // 1 = hide a generated block
+            public byte dim;       // which plane the edit belongs to
         }
 
+        /// <summary>Edits for the plane we are standing in right now.</summary>
         public static List<Entry> Serialize()
         {
-            var list = new List<Entry>(Placed.Count + Removed.Count);
-            foreach (var kv in Placed)
+            return Collect(Placed, Removed, (byte)_dimension);
+        }
+
+        /// <summary>Every plane's edits, so a save never loses one of them.</summary>
+        public static List<Entry> SerializeAll()
+        {
+            var list = Collect(Placed, Removed, (byte)_dimension);
+            foreach (var kv in Parked)
+                list.AddRange(Collect(kv.Value.Placed, kv.Value.Removed, (byte)kv.Key));
+            return list;
+        }
+
+        private static List<Entry> Collect(Dictionary<long, byte> placed, Dictionary<long, byte> removed, byte dim)
+        {
+            var list = new List<Entry>(placed.Count + removed.Count);
+            foreach (var kv in placed)
             {
-                Entry e = new Entry();
+                Entry e = new Entry { dim = dim };
                 Unpack(kv.Key, out e.x, out e.y, out e.z);
                 e.block = kv.Value;
                 e.removed = 0;
                 list.Add(e);
             }
-            foreach (var kv in Removed)
+            foreach (var kv in removed)
             {
-                Entry e = new Entry();
+                Entry e = new Entry { dim = dim };
                 Unpack(kv.Key, out e.x, out e.y, out e.z);
                 e.block = 0;
                 e.removed = 1;
@@ -141,6 +172,62 @@ namespace DivergentGenesis.World
                 else Placed[key] = e.block;
                 MarkDirty(e.x, e.z);
             }
+        }
+
+        /// <summary>Loads both planes from a save file.</summary>
+        public static void DeserializeAll(List<Entry> list)
+        {
+            Clear();
+            Parked.Clear();
+            if (list == null) return;
+
+            for (int i = 0; i < list.Count; i++)
+            {
+                Entry e = list[i];
+                if (e.dim == (byte)_dimension)
+                {
+                    long key = Pack(e.x, e.y, e.z);
+                    if (e.removed != 0) Removed[key] = 0; else Placed[key] = e.block;
+                    MarkDirty(e.x, e.z);
+                    continue;
+                }
+
+                Store store;
+                if (!Parked.TryGetValue(e.dim, out store))
+                {
+                    store = new Store();
+                    Parked[e.dim] = store;
+                }
+                long k = Pack(e.x, e.y, e.z);
+                if (e.removed != 0) store.Removed[k] = 0; else store.Placed[k] = e.block;
+            }
+        }
+
+        /// <summary>
+        /// Swaps the live edit set for another dimension's. Every edit the player
+        /// ever made in the overworld is still there when they come back.
+        /// </summary>
+        public static void SwitchDimension(int dimension)
+        {
+            if (dimension == _dimension) return;
+
+            Parked[_dimension] = new Store(Placed, Removed);
+
+            Store incoming;
+            if (Parked.TryGetValue(dimension, out incoming))
+            {
+                Parked.Remove(dimension);
+                Placed = incoming.Placed;
+                Removed = incoming.Removed;
+            }
+            else
+            {
+                Placed = new Dictionary<long, byte>(1024);
+                Removed = new Dictionary<long, byte>(1024);
+            }
+
+            DirtyChunks.Clear();
+            _dimension = dimension;
         }
 
         private static void Unpack(long key, out int x, out int y, out int z)

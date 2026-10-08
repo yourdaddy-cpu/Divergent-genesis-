@@ -15,6 +15,13 @@ namespace DivergentGenesis.Render
         public static Material Highlight { get; private set; }
         public static Material BorderWall { get; private set; }
 
+        /// <summary>Lit, vertex-coloured, fogged - every creature in the game.</summary>
+        public static Material Entity { get; private set; }
+        /// <summary>Unlit and additive: wisps, sparks, projectiles, the Node rift.</summary>
+        public static Material EntityGlow { get; private set; }
+        /// <summary>The HDR bloom + tonemap pass.</summary>
+        public static Material Post { get; private set; }
+
         private static bool _ready;
 
         public static void Ensure()
@@ -25,6 +32,9 @@ namespace DivergentGenesis.Render
             Terrain = Make("DGTerrain");
             Water = Make("DGWater");
             Foliage = Make("DGFoliage");
+            Entity = Make("DGEntity");
+            EntityGlow = Make("DGGlow");
+            Post = Make("DGPost");
             Highlight = MakeHighlight();
             BorderWall = MakeBorderWall();
         }
@@ -69,6 +79,7 @@ namespace DivergentGenesis.Render
             if (Water != null) SetLighting(Water, sunDir, sunColor, ambient, fog, fogDensity);
             if (Foliage != null) SetLighting(Foliage, sunDir, sunColor, ambient, fog, fogDensity);
             if (BorderWall != null) SetLighting(BorderWall, sunDir, sunColor, ambient, fog, fogDensity);
+            if (Entity != null) SetLighting(Entity, sunDir, sunColor, ambient, fog, fogDensity);
         }
 
         private static void SetLighting(Material m, Vector3 sunDir, Color sun, Color amb, Color fog, float density)
