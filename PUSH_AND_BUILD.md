@@ -71,8 +71,25 @@ activation** — you will get a red build and no APK.
 3. Value: the **entire contents** of the `.ulf` file (it starts with
    `<DeveloperData ...` and ends with `</DeveloperData>`) — paste all of it
 
-For a Professional licence, also add `UNITY_SERIAL` (`XXXX-XXXX-XXXX-XXXX`).
-GameCI can also read secrets named `UNITY_LICENSE_FILE`.
+**Which path applies to you**
+
+| Your Unity seat | Secrets to add | What goes in them |
+| --- | --- | --- |
+| **Personal** (free) | `UNITY_LICENSE` | The whole contents of the `.ulf` file, from `<DeveloperData ...` to `</DeveloperData>` |
+| **Pro / Plus / Enterprise** | `UNITY_EMAIL`, `UNITY_PASSWORD`, `UNITY_SERIAL` | Your Unity account email, password, and the `XXXX-XXXX-XXXX-XXXX` serial from <https://id.unity.com> → *Subscriptions* → *Serial keys* |
+
+Do **not** set `UNITY_SERIAL` on a Personal seat, and do not mix the two paths: if
+`UNITY_SERIAL` is present, GameCI tries serial activation first and a Personal
+account has no valid serial to give it, which is what produces the
+`Code 20110 ... serial invalid` error below. GameCI also accepts a
+`UNITY_LICENSE_FILE` secret; either name works.
+
+If activation fails, check that no stale `UNITY_SERIAL` secret is still set — a
+leftover value from an old seat will break the `.ulf` path.
+
+The workflow also runs a **Check the Unity licence secrets** step before it installs
+Unity, so a missing or mismatched licence fails in seconds with a readable message
+instead of after five minutes of retries.
 
 ---
 
@@ -122,6 +139,17 @@ Or copy it to the phone and open it (allow *install from unknown sources*).
 
 Open the failed run → the red job → **Annotations** / step logs. The two most
 likely failures:
+
+**"Check the Unity licence secrets" fails** → nothing is configured. Follow the
+table above; the log line tells you which path was detected.
+
+**`Code 20110 ... serial invalid`, "License activation has failed. Aborting."** →
+a `UNITY_SERIAL` secret is set that Unity will not accept. This is an account
+problem, not a code problem, and it is the single likeliest reason a build dies at
+the first Unity step. Either the serial is expired/wrong, or it belongs to a
+Personal account (which has no serial). Fix it by deleting the `UNITY_SERIAL`
+secret and using the `.ulf` path, or by pasting a fresh serial from
+<https://id.unity.com> → *Subscriptions*.
 
 **"No valid Unity Editor license found"** → `UNITY_LICENSE` is missing,
 mis-pasted, or was created for a different machine. Re-download it from the

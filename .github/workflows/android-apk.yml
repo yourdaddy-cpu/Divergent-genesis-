@@ -57,12 +57,33 @@ jobs:
           restore-keys: |
             Library-Android-DG-
 
+      # GameCI accepts either a serial (Pro/Plus) or a .ulf licence file
+      # (Personal). Failing here says exactly which secret is missing instead of
+      # spending five minutes installing Unity first.
+      - name: Check the Unity licence secrets
+        env:
+          SERIAL: ${{ secrets.UNITY_SERIAL }}
+          LICENSE: ${{ secrets.UNITY_LICENSE }}
+          LICENSE_FILE: ${{ secrets.UNITY_LICENSE_FILE }}
+        run: |
+          if [ -n "$SERIAL" ]; then
+            echo "licence: serial (Pro/Plus)"
+          elif [ -n "$LICENSE" ] || [ -n "$LICENSE_FILE" ]; then
+            echo "licence: .ulf file (Personal)"
+          else
+            echo "::error::No Unity licence configured. Add UNITY_EMAIL, UNITY_PASSWORD and UNITY_SERIAL for a Pro/Plus seat, or UNITY_LICENSE with the contents of the .ulf file for Unity Personal - see PUSH_AND_BUILD.md section 2."
+            exit 1
+          fi
+
       - name: Build with GameCI
         uses: game-ci/unity-builder@v4
         env:
+          # Unity Pro / Plus: email + password + serial
           UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          # Unity Personal: the .ulf produced by activation.yml
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
         with:
           targetPlatform: Android
           buildMethod: DivergentGenesis.Editor.DGBuildScript.BuildAndroid
