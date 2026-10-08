@@ -67,6 +67,20 @@ namespace DivergentGenesis.Living
             var b = new PrimitiveMesher.Builder();
             build(b);
             if (mirror) Mirror(b);
+
+            // Vertex colour alpha is the emissive mask that DG/Entity reads. The
+            // builder writes opaque alpha by default, which would make every
+            // creature glow, so it is rewritten here: eyes burn, everything else
+            // stays opaque and lit. Parts that should glow as a whole (wisp cores,
+            // lanterns, breath) are drawn with GlowSub instead.
+            byte emissive = (byte)(part == RigPart.Eye ? 255 : 0);
+            for (int i = 0; i < b.C.Count; i++)
+            {
+                var c = b.C[i];
+                c.a = emissive;
+                b.C[i] = c;
+            }
+
             m = b.ToMesh("Rig_" + mob + "_" + part + (mirror ? "_m" : ""));
             Cache[k] = m;
             return m;

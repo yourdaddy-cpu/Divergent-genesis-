@@ -137,6 +137,14 @@ namespace DivergentGenesis.Player
                 b.Box(new Vector3(0f, 0.10f, 0f), new Vector3(0.28f, 0.06f, 0.28f), dark);
             }
 
+            // opaque: DG/Entity reads vertex alpha as an emissive mask
+            for (int i = 0; i < b.C.Count; i++)
+            {
+                var c = b.C[i];
+                c.a = 0;
+                b.C[i] = c;
+            }
+
             m = b.ToMesh("Held_" + id);
             MeshCache[key] = m;
             return m;
